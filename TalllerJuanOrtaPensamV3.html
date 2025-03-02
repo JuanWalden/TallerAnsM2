@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Programa Terapéutico de Metacognición</title>
+  <style>
+    /* Estilos generales */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 10px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    h1, h2, h3 {
+      text-align: center;
+      margin: 10px 0;
+    }
+    p {
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    /* Pestañas */
+    .tab-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .tab-buttons button {
+      padding: 10px 20px;
+      border: none;
+      background-color: #ddd;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 1em;
+      flex: 1 1 calc(50% - 20px);
+    }
+    .tab-buttons button.active {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .tabContent {
+      display: none;
+      background-color: white;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    .tabContent.active {
+      display: block;
+    }
+    /* Formularios y entradas */
+    label {
+      font-weight: bold;
+    }
+    input, textarea, select, button {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button.action {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+    button.action:hover {
+      background-color: #45a049;
+    }
+    .entry {
+      border-bottom: 1px solid #eee;
+      padding: 10px 0;
+    }
+    .timestamp {
+      font-size: 0.8em;
+      color: #888;
+    }
+    /* Canvas */
+    canvas {
+      border: 1px solid #ccc;
+      display: block;
+      margin: 0 auto;
+      max-width: 100%;
+      height: auto;
+    }
+    /* Tabla de progreso */
+    .table-container {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    /* Feedback */
+    .feedback {
+      text-align: center;
+      color: #4CAF50;
+      margin-bottom: 10px;
+    }
+    /* Sugerencias en el ejercicio */
+    #suggestions {
+      background-color: #e7f4e4;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    /* Responsive */
+    @media (max-width: 600px) {
+      .tab-buttons button {
+        flex: 1 1 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Programa Terapéutico de Metacognición</h1>
+    <div class="tab-buttons">
+      <button id="btnDiario" class="active" aria-label="Diario de Pensamientos">Diario de Pensamientos</button>
+      <button id="btnEjercicio" aria-label="Ejercicio de Observación">Ejercicio de Observación</button>
+      <button id="btnLienzo" aria-label="Lienzo para Dibujar">Lienzo</button>
+      <button id="btnProgress" aria-label="Progreso">Progreso</button>
+    </div>
+
+    <!-- Diario de Pensamientos -->
+    <div id="diario" class="tabContent active" role="tabpanel">
+      <h2>Diario de Pensamientos</h2>
+      <p>Registra tus pensamientos y selecciona una etiqueta predefinida o personalizada para observarlos sin juzgar.</p>
+      <label for="thought">Pensamiento:</label>
+      <textarea id="thought" rows="3" placeholder="Escribe aquí tu pensamiento..."></textarea>
+      <label for="label">Etiqueta:</label>
+      <select id="label">
+        <option value="preocupacion">Preocupación</option>
+        <option value="autocritica">Autocrítica</option>
+        <option value="juicio">Juicio</option>
+        <option value="miedo">Miedo</option>
+        <option value="negatividad">Negatividad</option>
+        <option value="otro">Otro (especificar)</option>
+      </select>
+      <input type="text" id="customLabel" placeholder="Especifica si eliges 'Otro'" style="display:none;">
+      <label for="intensity">Intensidad:</label>
+      <select id="intensity">
+        <option value="bajo">Bajo</option>
+        <option value="medio">Medio</option>
+        <option value="alto">Alto</option>
+      </select>
+      <button id="saveEntry" class="action">Guardar Pensamiento</button>
+      <div id="diaryFeedback" class="feedback"></div>
+      <h3>Registro de Pensamientos</h3>
+      <div id="entries"></div>
+      <button id="clearEntries" class="action" style="margin-top: 10px;">Limpiar Registro</button>
+    </div>
+
+    <!-- Ejercicio de Observación -->
+    <div id="ejercicio" class="tabContent" role="tabpanel">
+      <h2>Ejercicio de Observación</h2>
+      <p>Observa tus pensamientos sin juzgarlos, tal como ver nubes pasar en el cielo. Concéntrate en tu respiración y en las sensaciones de tu cuerpo.</p>
+      <label for="duration">Duración (segundos):</label>
+      <input type="number" id="duration" min="30" max="300" value="60">
+      <button id="startExercise" class="action">Iniciar Ejercicio</button>
+      <div id="exerciseTimer" style="text-align: center; font-size: 2em; margin: 20px 0;"></div>
+      <div id="exerciseCompleted" style="display: none;">
+        <p>¡Bien hecho! Has completado el ejercicio. Tómate un momento para notar cómo te sientes.</p>
+        <label for="reflection">Reflexión:</label>
+        <textarea id="reflection" rows="3" placeholder="Escribe tu reflexión sobre el ejercicio..."></textarea>
+        <label for="rating">Valoración de la experiencia (1 - 5):</label>
+        <input type="range" id="rating" min="1" max="5" value="3">
+        <span id="ratingValue">3</span>
+        <button id="saveReflection" class="action">Guardar Reflexión y Valoración</button>
+        <h3>Reflexiones Guardadas</h3>
+        <div id="reflections"></div>
+      </div>
+      <div style="text-align: center; margin-top: 10px;">
+        <button id="toggleSuggestions" class="action">Mostrar Sugerencias</button>
+      </div>
+      <div id="suggestions" style="display: none;">
+        <ul>
+          <li>Enfoca tu atención en tu respiración y en el flujo del aire.</li>
+          <li>Observa las sensaciones en tu cuerpo sin juzgarlas.</li>
+          <li>Deja que tus pensamientos vengan y se vayan, sin aferrarte a ellos.</li>
+          <li>Permítete experimentar y luego liberar cualquier tensión.</li>
+        </ul>
+      </div>
+      <div style="text-align: center; margin-top: 10px;">
+        <audio id="backgroundAudio" preload="auto"></audio>
+        <button id="toggleSound" class="action">Reproducir Sonidos del Mar</button>
+        <button id="stopSound" class="action" style="margin-left: 10px;">Apagar Música</button>
+      </div>
+    </div>
+
+    <!-- Lienzo de Dibujo -->
+    <div id="lienzo" class="tabContent" role="tabpanel">
+      <h2>Lienzo de Dibujo</h2>
+      <p>Dibuja y expresa tus pensamientos visualmente.</p>
+      <canvas id="canvas" width="600" height="400"></canvas>
+      <br>
+      <button id="clearCanvas" class="action">Limpiar Lienzo</button>
+    </div>
+
+    <!-- Progreso -->
+    <div id="progress" class="tabContent" role="tabpanel">
+      <h2>Progreso</h2>
+      <p>Análisis de tus pensamientos registrados:</p>
+      <div class="table-container">
+        <table id="progressTable">
+          <thead>
+            <tr>
+              <th>Pensamiento</th>
+              <th>Etiqueta</th>
+              <th>Intensidad</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer style="text-align: center; font-size: 0.9em; margin-top: 20px;">
+    <p>Recursos de apoyo: <a href="https://www.mindful.org" target="_blank" rel="noopener">Mindful.org</a> | <a href="https://www.meditacionguiada.com" target="_blank" rel="noopener">Meditación Guiada</a></p>
+  </footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+      // --- Cambio de Pestañas ---
+      const tabs = document.querySelectorAll('.tab-buttons button');
+      const tabContents = document.querySelectorAll('.tabContent');
+
+      const activateTab = (index) => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        tabs[index].classList.add('active');
+        tabContents[index].classList.add('active');
+      };
+
+      tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => activateTab(index));
+        tab.addEventListener('touchend', () => activateTab(index));
+      });
+
+      // --- Selección de Etiqueta Personalizada ---
+      const labelSelect = document.getElementById('label');
+      const customLabelInput = document.getElementById('customLabel');
+
+      labelSelect.addEventListener('change', () => {
+        customLabelInput.style.display = (labelSelect.value === 'otro') ? 'block' : 'none';
+      });
+
+      // --- Diario de Pensamientos y Progreso ---
+      const saveEntryButton = document.getElementById('saveEntry');
+      const entriesDiv = document.getElementById('entries');
+      const thoughtInput = document.getElementById('thought');
+      const intensitySelect = document.getElementById('intensity');
+      const progressTableBody = document.querySelector('#progressTable tbody');
+      const diaryFeedback = document.getElementById('diaryFeedback');
+
+      function saveEntry() {
+        const thought = thoughtInput.value.trim();
+        let label = (labelSelect.value === 'otro') ? customLabelInput.value.trim() : labelSelect.value;
+        const intensity = intensitySelect.value;
+
+        if (thought === '' || label === '') {
+          alert('Por favor, completa todos los campos.');
+          return;
+        }
+
+        const now = new Date();
+        // Agregar entrada al diario
+        const entryDiv = document.createElement('div');
+        entryDiv.classList.add('entry');
+        entryDiv.innerHTML = `<strong>[${label}] (${intensity})</strong> ${thought} <div class="timestamp">${now.toLocaleString()}</div>`;
+        entriesDiv.prepend(entryDiv);
+
+        // Guardar en localStorage
+        const entry = { thought, label, intensity, timestamp: now };
+        let entries = JSON.parse(localStorage.getItem('entries')) || [];
+        entries.push(entry);
+        localStorage.setItem('entries', JSON.stringify(entries));
+
+        // Actualizar tabla de progreso
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${thought}</td>
+          <td>${label}</td>
+          <td>${intensity}</td>
+          <td>${now.toLocaleString()}</td>
+        `;
+        progressTableBody.prepend(row);
+
+        thoughtInput.value = '';
+        labelSelect.value = 'preocupacion';
+        customLabelInput.style.display = 'none';
+        customLabelInput.value = '';
+        diaryFeedback.textContent = 'Entrada guardada. ¡Buen trabajo!';
+        setTimeout(() => diaryFeedback.textContent = '', 3000);
+      }
+      saveEntryButton.addEventListener('click', saveEntry);
+
+      // --- Ejercicio de Observación ---
+      const startExerciseButton = document.getElementById('startExercise');
+      const exerciseTimerDiv = document.getElementById('exerciseTimer');
+      const exerciseCompletedDiv = document.getElementById('exerciseCompleted');
+      const saveReflectionButton = document.getElementById('saveReflection');
+      const reflectionsDiv = document.getElementById('reflections');
+      const reflectionInput = document.getElementById('reflection');
+      const durationInput = document.getElementById('duration');
+      const ratingInput = document.getElementById('rating');
+      const ratingValueSpan = document.getElementById('ratingValue');
+      const toggleSuggestionsButton = document.getElementById('toggleSuggestions');
+      const suggestionsDiv = document.getElementById('suggestions');
+      const backgroundAudio = document.getElementById('backgroundAudio');
+      const toggleSoundButton = document.getElementById('toggleSound');
+      const stopSoundButton = document.getElementById('stopSound');
+
+      // Actualiza el valor del slider de valoración
+      ratingInput.addEventListener('input', () => {
+        ratingValueSpan.textContent = ratingInput.value;
+      });
+
+      startExerciseButton.addEventListener('click', () => {
+        const duration = parseInt(durationInput.value, 10);
+        if (isNaN(duration) || duration < 30 || duration > 300) {
+          alert('Por favor, ingresa una duración válida entre 30 y 300 segundos.');
+          return;
+        }
+        // Inicia con sonidos del mar por defecto
+        backgroundAudio.src = "https://www.myinstants.com/media/sounds/ocean-sound-effect.mp3";
+        backgroundAudio.play();
+        let timeLeft = duration;
+        exerciseTimerDiv.textContent = timeLeft;
+        exerciseCompletedDiv.style.display = 'none';
+        startExerciseButton.disabled = true;
+
+        const timerInterval = setInterval(() => {
+          timeLeft--;
+          exerciseTimerDiv.textContent = timeLeft;
+          if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            exerciseTimerDiv.textContent = 'Tiempo terminado';
+            exerciseCompletedDiv.style.display = 'block';
+            startExerciseButton.disabled = false;
+            backgroundAudio.pause();
+          }
+        }, 1000);
+      });
+
+      saveReflectionButton.addEventListener('click', () => {
+        const reflection = reflectionInput.value.trim();
+        const rating = ratingInput.value;
+        if (reflection === '') {
+          alert('Por favor, escribe tu reflexión.');
+          return;
+        }
+        const now = new Date();
+        const reflectionDiv = document.createElement('div');
+        reflectionDiv.classList.add('entry');
+        reflectionDiv.innerHTML = `<strong>Valoración:</strong> ${rating}/5<br>${reflection} <div class="timestamp">${now.toLocaleString()}</div>`;
+        reflectionsDiv.prepend(reflectionDiv);
+
+        // Guardar reflexión en localStorage
+        const reflectionEntry = { reflection, rating, timestamp: now };
+        let reflections = JSON.parse(localStorage.getItem('reflections')) || [];
+        reflections.push(reflectionEntry);
+        localStorage.setItem('reflections', JSON.stringify(reflections));
+
+        reflectionInput.value = '';
+      });
+
+      // --- Toggle de Sugerencias ---
+      toggleSuggestionsButton.addEventListener('click', () => {
+        if (suggestionsDiv.style.display === 'none') {
+          suggestionsDiv.style.display = 'block';
+          toggleSuggestionsButton.textContent = 'Ocultar Sugerencias';
+        } else {
+          suggestionsDiv.style.display = 'none';
+          toggleSuggestionsButton.textContent = 'Mostrar Sugerencias';
+        }
+      });
+
+      // --- Control de Música de Fondo ---
+      toggleSoundButton.addEventListener('click', () => {
+        if (backgroundAudio.paused) {
+          backgroundAudio.src = "https://www.myinstants.com/media/sounds/ocean-sound-effect.mp3";
+          backgroundAudio.play();
+        } else {
+          backgroundAudio.pause();
+        }
+      });
+      stopSoundButton.addEventListener('click', () => {
+        backgroundAudio.pause();
+        backgroundAudio.currentTime = 0;
+      });
+
+      // --- Lienzo de Dibujo ---
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      let drawing = false;
+      let currentX = 0;
+      let currentY = 0;
+
+      canvas.addEventListener('mousedown', (e) => {
+        drawing = true;
+        currentX = e.offsetX;
+        currentY = e.offsetY;
+      });
+      canvas.addEventListener('mousemove', (e) => {
+        if (!drawing) return;
+        ctx.beginPath();
+        ctx.moveTo(currentX, currentY);
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.strokeStyle = "#4CAF50";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        currentX = e.offsetX;
+        currentY = e.offsetY;
+      });
+      canvas.addEventListener('mouseup', () => {
+        drawing = false;
+        ctx.beginPath();
+      });
+      canvas.addEventListener('mouseout', () => {
+        drawing = false;
+        ctx.beginPath();
+      });
+      const clearCanvasButton = document.getElementById('clearCanvas');
+      clearCanvasButton.addEventListener('click', () => {
+        if(confirm('¿Deseas limpiar el lienzo?')) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      });
+
+      // --- Cargar Datos Previos ---
+      // Cargar entradas del diario y progreso
+      const storedEntries = JSON.parse(localStorage.getItem('entries')) || [];
+      storedEntries.forEach(entry => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${entry.thought}</td>
+          <td>${entry.label}</td>
+          <td>${entry.intensity}</td>
+          <td>${new Date(entry.timestamp).toLocaleString()}</td>
+        `;
+        progressTableBody.prepend(row);
+      });
+      // Cargar reflexiones
+      const storedReflections = JSON.parse(localStorage.getItem('reflections')) || [];
+      storedReflections.forEach(reflection => {
+        const reflectionDiv = document.createElement('div');
+        reflectionDiv.classList.add('entry');
+        reflectionDiv.innerHTML = `<strong>Valoración:</strong> ${reflection.rating}/5<br>${reflection.reflection} <div class="timestamp">${new Date(reflection.timestamp).toLocaleString()}</div>`;
+        reflectionsDiv.prepend(reflectionDiv);
+      });
+    });
+  </script>
+</body>
+</html>
